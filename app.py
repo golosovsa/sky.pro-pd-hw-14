@@ -16,6 +16,7 @@ from werkzeug.exceptions import InternalServerError
 
 # local imports
 import config
+import loggers
 
 
 def create_app():
@@ -37,8 +38,14 @@ def create_app():
                                   "Make sure that the .env file is correct or exists.")
 
     # logging
-    
+    loggers.init(the_app)
+
+    # blueprints
+
+    # error handlers
+
+    return the_app
 
 
 if __name__ == '__main__':
-    app.run()
+    create_app().run()
