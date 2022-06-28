@@ -34,7 +34,7 @@ def create_app():
         the_app.config.from_object(config.Production)
 
     else:
-        raise InternalServerError("The APP_CONFIG application environment variable does not exist.\n"
+        raise InternalServerError("The APP_CONFIG application environment name does not exist.\n"
                                   "Make sure that the .env file is correct or exists.")
 
     # logging
