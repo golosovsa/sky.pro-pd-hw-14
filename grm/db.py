@@ -8,6 +8,7 @@ from dataclasses import dataclass, is_dataclass
 import typing
 import sqlite3
 
+# db constants
 SQLITE_PREDICATES = ["", "AND", "OR"]
 SQLITE_COMPARISON = {
     "equal": "= {}",
@@ -18,7 +19,15 @@ SQLITE_COMPARISON = {
     "less_or_equal_that": "<= {}",
     "between": "BETWEEN {} AND {}",
     "not_between": "NOT BETWEEN {} AND {}",
-    "in": "IN ({})",
+    "in_the": "IN ({})",
+    "only_null": "IS NULL",
+    "without_null": "IS NOT NULL",
+    "like": "LIKE {}"
+}
+SQLITE_AGGREGATE = {
+    "min": "MIN({})",
+    "max": "MAX({})",
+    "count": "COUNT({}) AS `{}`",
 }
 
 
@@ -68,23 +77,42 @@ class MakeVariable:
 
 
 class FieldName:
-
+    """ Received class fields and its names """
     def __init__(self, data_class):
 
         if not is_dataclass(data_class):
             raise TypeError("The data_class param must be a dataclass type")
 
+        self._fields = []
+
         for attr in data_class.__annotations__.keys():
+            self.__dict__[attr] = attr
+            self._fields.append(attr)
             setattr(self, attr, attr)
+
+    def get_column_by_index(self, index):
+
+        if index >= len(self._fields):
+            return None
+
+        return self._fields[index]
 
 
 class Select:
+    """ Select query helper class """
 
     def __init__(self,
                  cursor: sqlite3.Cursor,
                  data_class: dataclass,
                  aliases: dataclass = None,
                  distinct=False):
+        """ Constructor sqlite SELECT query
+
+        :param cursor: database cursor
+        :param data_class: Dataclass (getting field names). Can be a class or am instance
+        :param aliases: (optional) Dataclass (getting field names). Can be a class or an instance
+        :param distinct: (optional, default False) mark DISTINCT reserved keyword
+        """
 
         if not is_dataclass(data_class):
             raise TypeError(f"Param data_class must be a dataclass type, you passed a {type(data_class)} type.")
@@ -109,6 +137,7 @@ class Select:
         self._auto_variable_part_of_name = "auto_var__"
 
     def from_table(self, table: str, alias: str = None) -> 'Select':
+        """ Specify table name """
 
         if not table or type(table) != str:
             raise TypeError(f"param table must be a str type, you passed a {type(table)} type or empty.")
@@ -118,8 +147,43 @@ class Select:
 
         self._from_table = f"{table} AS {alias}" if alias else table
 
+        return self
+
+    def make_aggregate(self, field, distinct=False, **kwargs):
+
+        if not field and type(field) is not str:
+            raise TypeError(f"param field must be a str type, you passed a {type(field)} type or empty.")
+
+        if not kwargs or len(kwargs) != 1:
+            raise AttributeError("Must be one named parameter. Not more, not less.")
+
+        if field not in self.DataClass.__annotations__.keys():
+            raise RuntimeError("Make sure what field exist in data class")
+
+        aggregate = list(kwargs.keys())[0]
+
+        if aggregate not in SQLITE_AGGREGATE:
+            raise AttributeError(f"Wrong keyword parameter.\n"
+                                 f"Must be only one of them {SQLITE_AGGREGATE.keys()}.\n"
+                                 f"You passed {aggregate}.")
+
+        aggregate_field = kwargs[aggregate]
+
+        if aggregate_field != "*":
+            aggregate_field = f"`{aggregate_field}`"
+
+        if distinct:
+            aggregate_field = f"DISTINCT {aggregate_field}"
+
+        self._query_fields = self._query_fields.replace(
+            f"`{field}`",
+            SQLITE_AGGREGATE[aggregate].format(aggregate_field, field))
+
+        return self
+
     @staticmethod
     def _where_or_having(predicate: str, field: str, **kwargs) -> dict:
+        """ Procedure expressions. Private common static method. """
 
         if not field and type(field) is not str:
             raise TypeError(f"param field must be a str type, you passed a {type(field)} type or empty.")
@@ -142,39 +206,52 @@ class Select:
         return {'predicate': predicate, 'field': field, 'comparison': comparison, 'value': kwargs[comparison]}
 
     def where(self, field: str, **kwargs):
+        """ Where sqlite query keyword helper method """
+
         self._filters.append(self._where_or_having("", field, **kwargs))
         return self
 
     def and_where(self, field: str, **kwargs):
+        """ Where sqlite query keyword helper method with predicate END """
+
         self._filters.append(self._where_or_having("AND", field, **kwargs))
         return self
 
     def or_where(self, field: str, **kwargs):
+        """ Where sqlite query keyword helper method with predicate OR """
+
         self._filters.append(self._where_or_having("OR", field, **kwargs))
         return self
 
-    def group_by(self, field):
-
+    def group_by(self, field, desc=False):
+        """ GROUP BY sqlite query keyword helper method"""
         if not field and type(field) is not str:
             raise TypeError(f"param field must be a str type, you passed a {type(field)} type or empty.")
 
-        self._group_by.append(field)
+        self._group_by.append(f"`{field}` DESC" if desc else f"`{field}`")
 
         return self
 
     def having(self, field: str, **kwargs):
+        """ HAVING sqlite query keyword helper method """
+
         self._filters_having.append(self._where_or_having("", field, **kwargs))
         return self
 
     def and_having(self, field: str, **kwargs):
+        """ HAVING sqlite query keyword helper method with predicate END """
+
         self._filters_having.append(self._where_or_having("AND", field, **kwargs))
         return self
 
     def or_having(self, field: str, **kwargs):
+        """ HAVING sqlite query keyword helper method with predicate OR """
+
         self._filters_having.append(self._where_or_having("OR", field, **kwargs))
         return self
 
     def order_by(self, field, desc=False):
+        """ ORDER BY sqlite query keyword helper method"""
 
         if not field and type(field) is not str:
             raise TypeError(f"param field must be a str type, you passed a {type(field)} type or empty.")
@@ -184,6 +261,7 @@ class Select:
         return self
 
     def limit(self, the_limit):
+        """ LIMIT sqlite query keyword helper method """
 
         if not the_limit and type(the_limit) is not int:
             raise TypeError(f"param the_limit must be a int type, you passed a {type(the_limit)} type or 0.")
@@ -193,6 +271,7 @@ class Select:
         return self
 
     def offset(self, the_offset):
+        """ OFFSET sqlite query keyword helper method """
 
         if not the_offset and type(the_offset) is not int:
             raise TypeError(f"param the_offset must be a int type, you passed a {type(the_offset)} type or 0.")
@@ -202,15 +281,17 @@ class Select:
         return self
 
     def _make_variable(self, variable: MakeVariable):
+        """ Make variable private method. Only for internal usage. """
 
         if variable.name in self._variables:
             raise RuntimeError("The same name are already exist")
 
         self._variables[variable.name] = variable.value
 
-    def _compile_add_param(self, param):
+    def _compile_add_param(self, value):
+        """ Compile add param private method. Only for internal usage. """
 
-        value = param["value"]
+        # value = param["value"]
 
         if type(value) == MakeVariable:
             self._make_variable(value)
@@ -220,10 +301,13 @@ class Select:
             return str(value)
 
         if type(value) is str:
-            variable = MakeVariable(f"{self._auto_variable_part_of_name}{self._auto_variable_index}")
+            variable = MakeVariable(
+                f"{self._auto_variable_part_of_name}{self._auto_variable_index}",
+                value
+            )
             self._auto_variable_index += 1
             self._make_variable(variable)
-            return f":{value.name}"
+            return f":{variable.name}"
 
         if type(value) in (list, tuple):
             names = []
@@ -234,6 +318,7 @@ class Select:
         raise RuntimeError("Not supported type of value")
 
     def _compile_filter_or_having_make_comparison(self, comparison, value):
+        """ Compile make comparison private method. Only for internal usage. """
 
         # equal
         # not_equal
@@ -242,8 +327,14 @@ class Select:
         # less_that
         # less_or_equal_that
         # in
-        if comparison not in ["between", "not_between"]:
+        # like
+        if comparison not in ["between", "not_between", "only_null", "without_null"]:
             return SQLITE_COMPARISON[comparison].format(self._compile_add_param(value))
+
+        # only_null
+        # without_null
+        if comparison in ["only_null", "without_null"]:
+            return SQLITE_COMPARISON[comparison]
 
         # between
         # not_between
@@ -258,30 +349,32 @@ class Select:
         )
 
     def _compile_filter_or_having(self,
-                                  params: dict) -> str:
+                                  params: list) -> str:
+        """ Compile private method. Only for internal usage. """
 
         if len(params) < 1:
             raise RuntimeError("Not enough params")
 
-        if params[0].predicate != "":
-            raise RuntimeError(f"First predicate in WITH or HAVING must be empty, you passed {params[0].predicate}")
+        if params[0]["predicate"] != "":
+            raise RuntimeError(f"First predicate in WITH or HAVING must be empty, you passed {params[0]['predicate']}")
 
-        comparison = self._compile_filter_or_having_make_comparison(params[0].comparison, params[0].value)
+        comparison = self._compile_filter_or_having_make_comparison(params[0]['comparison'], params[0]['value'])
 
-        query = [f"{params[0].field} {comparison}"]
+        query = [f"`{params[0]['field']}` {comparison}"]
 
         for param in params[1:]:
-            if params[0].predicate == "":
+            if param['predicate'] == "":
                 raise RuntimeError(f"Params whats index is greater that 0 predicates\n"
                                    f"in WITH or HAVING must are {SQLITE_PREDICATES[1:]}."
-                                   f"You passed {param.predicate}")
+                                   f"You passed {param['predicate']}")
 
-            comparison = self._compile_filter_or_having_make_comparison(param.comparison, param.value)
-            query.append(f"{param.predicate} {param.field} {comparison}")
+            comparison = self._compile_filter_or_having_make_comparison(param['comparison'], param['value'])
+            query.append(f"{param['predicate']} `{param['field']}` {comparison}")
 
         return "\n".join(query)
 
     def compile(self):
+        """ Compile sqlite SELECT query method. """
 
         self._query = None
 
@@ -290,7 +383,7 @@ class Select:
                 self._from_table is None or self._from_table == "":
             raise RuntimeError("Syntax error")
 
-        base_query = f"{self._predicate} {self._query_fields} FROM {self._from_table}"
+        base_query = f"{self._predicate} {self._query_fields} FROM `{self._from_table}`"
 
         filter_query = ""
         if len(self._filters) > 0:
@@ -298,7 +391,7 @@ class Select:
 
         group_by_query = ""
         if len(self._group_by) > 0:
-            group_by_query = "\nGROUP BY" + ", ".join(self._group_by)
+            group_by_query = "\nGROUP BY " + ", ".join(self._group_by)
 
         having_query = ""
         if len(self._filters_having) > 0:
@@ -306,7 +399,7 @@ class Select:
 
         order_by_query = ""
         if len(self._order_by) > 0:
-            order_by_query = "\nORDER BY" + ", ".join(self._order_by)
+            order_by_query = "\nORDER BY " + ", ".join(self._order_by)
 
         limit_query = ""
         if self._limit:
@@ -324,7 +417,8 @@ class Select:
                       f"{limit_query}" \
                       f"{offset_query}"
 
-    def execute(self, cursor: sqlite3.Cursor = None):
+    def execute(self, cursor: sqlite3.Cursor = None) -> dataclass:
+        """ Execute sqlite SELECT query method. """
 
         if cursor is None or type(cursor) != sqlite3.Cursor:
             cursor = self._cursor
@@ -342,4 +436,3 @@ class Select:
             result.append(self.DataClass(**data_class_params))
 
         return result
-
