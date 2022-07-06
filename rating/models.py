@@ -8,49 +8,31 @@ from dataclasses import dataclass
 
 # local imports
 from app_data import AppData
-import grm
+from grm import do_sqlite_dict_factory, BaseModel
 
 
-@dataclass
-class Rating:
-    title: str
-    rating: str
-    description: str
+class Rating(BaseModel):
 
+    def __init__(self, ratings, limit, offset):
 
-class RatingModel:
+        def is_rating(rating):
+            return rating in ratings
 
-    def __init__(self, rating, limit, offset):
-        self._result = None
+        with AppData() as conn:
+            conn.row_factory = do_sqlite_dict_factory
+            conn.create_function("IS_RATING", 1, is_rating)
 
-        # get column names from dataclass, it's safe
-        json_headers = grm.get_fields_str_for_sqlite_json_function(Rating)
-        column_headers = grm.get_fields_str_from_dataclass(Rating)
+            cursor = conn.execute("""
+                SELECT `title`, `rating`, `description` FROM netflix
+                WHERE IS_RATING(`rating`)
+                AND `title` IS NOT NULL 
+                AND `title` != ""
+                AND `description` IS NOT NULL 
+                AND `description` != ""
+                ORDER BY release_year DESC
+                LIMIT :limit
+                OFFSET :offset
+            """, locals())
 
-        query = (
-            f"""
-                    SELECT json_group_array(json_object({json_headers})) FROM (
-                        SELECT {column_headers} FROM netflix
-                        WHERE `rating` IN ({[", ".join("?" * len(rating))]})
-                        AND netflix.title IS NOT NULL
-                        AND netflix.title != ""
-                        AND netflix.description IS NOT NULL 
-                        AND netflix.description != ""
-                        ORDER BY netflix.title
-                        LIMIT :limit
-                        OFFSET :offset
-                    )
-                    """, rating, *dict(rating=rating, limit=limit, offset=offset)
-        )
+            self._data = cursor.fetchall()
 
-        with AppData() as connection:
-            cursor = connection.cursor()
-
-            cursor.execute(*query)
-            self._result = cursor.fetchall()[0][0]
-
-        print(self._result)
-
-    @property
-    def result(self):
-        return self._result
