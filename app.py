@@ -15,6 +15,8 @@ from movie.views import bp_movie
 from rating.views import bp_rating
 from genre.views import bp_genre
 from together.views import bp_together
+from search.views import bp_search
+from usage.views import bp_usage
 
 
 def create_app():
@@ -33,6 +35,8 @@ def create_app():
     the_app.register_blueprint(bp_rating, url_prefix="/rating/")
     the_app.register_blueprint(bp_genre, url_prefix="/genre/")
     the_app.register_blueprint(bp_together, url_prefix="/together/")
+    the_app.register_blueprint(bp_search, url_prefix="/search/")
+    the_app.register_blueprint(bp_usage, url_prefix="/usage/")
 
     # static root route
     @the_app.route("/", methods=["GET"])

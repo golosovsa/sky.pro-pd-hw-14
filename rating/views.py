@@ -13,7 +13,7 @@ from .models import Rating
 bp_rating = Blueprint("bp_rating", __name__)
 
 
-@bp_rating.route("/<rating>", methods=["GET"])
+@bp_rating.route("/<string:rating>", methods=["GET"])
 def index_single_by_title(rating: str):
 
     ratings = {
