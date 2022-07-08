@@ -24,7 +24,7 @@ class Single(BaseModel):
                 SELECT `title`, `country`, `release_year`, `listed_in` AS `genre`, `description` 
                 FROM netflix
                 WHERE `title` LIKE :title
-                GROUP BY `release_year`
+                ORDER BY `release_year` DESC
                 LIMIT 1
             """, {"title": f"%{title}%"})
 

@@ -33,7 +33,7 @@ class Together(BaseModel):
                 SELECT item AS actor, COUNT(*) AS total FROM split
                 WHERE actor NOT IN (:actor1, :actor2)
                 GROUP BY actor
-                HAVING total > :times
+                HAVING total >   :times
                 LIMIT :limit
                 OFFSET :offset
             """, locals())
