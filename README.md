@@ -112,3 +112,67 @@ We will start working with SQL and learn basic database queries. First, use the 
 - [ ] Correct usage of the data sorting keywords.
 
 
+# Cancelled 15 homework
+[link to the source](https://skyengpublic.notion.site/15-SQL-2b9b172c85a5406389413b7bd7b23944)
+
+### Task:
+
+We have finished studying queries for creating tables, relationships between them, and also learned how to normalize the database. 
+Let's try something else.
+You will be working with a simple and non-normalized database.
+You have to normalize it and create all the tables to implement it.
+Now there is only one table in the database, which contains data from one of the American animal shelters. 
+It contains information about pets and events associated with them: who was given to new owners, who got lost, and so on.
+
+* `'age_upon_outcome'` is the age of the animal (at the time of arrival at the shelter).
+* `'animal_id'` - animal ID.
+* `'animal_type'` is the type of the animal.
+* `'name'` is the name (alias).
+* `'breed'` - breed.
+* `'color1', 'color2'` - color or combination of colors.
+* `'date_of_birth'` is the date of birth.
+* `'outcome_subtype'` is the participant program. (In America there are different programs for homeless animals)
+* `'outcome_type'` what is happening to the animal now.
+* `'outcome_month'` is the month of the outcome.
+* `'outcome_year'` is the year of the outcome.
+
+## What should you do:
+
+### Step 0:
+
+* Create a project with PyCharm IDE and put the [database file](https://github.com/skypro-008/lesson15/blob/main/animal.db) there.
+
+### Step 1:
+* Import the `sqlite3` module to work with the database.
+* Create a database connection using the `sqlite3.connect` method.
+
+### Step 2:
+* design a new, normalized-form database.
+
+### Step 3:
+* Write a SQL query to create new tables.
+
+### Step 4:
+* Create all tables and transfer the data into them.
+
+### Step 5:
+* Create a Flask application
+* Create an /<itemid> route, such as /2 or /4, that would return information about a single object (choose the data format and key names yourself).
+
+### Step 6:
+* create a github repository and push the project in it.
+* Don't forget about  `readme.md` and .`gitignore`.
+* If you have used SQL to create and modify tables, push it too.
+
+## How it should be implemented  
+### What will be checked in the homework:
+- [ ] Tables are correctly created.
+- [ ] Relationships between tables are created.
+- [ ] Tables are normalized to NF (normal form).
+- [ ] Table columns are named correctly and clearly.
+- [ ] Flask application written and working.
+
+# Project status
+
+- [x] HW14 done.
+- [ ] HW15 in process
