@@ -111,3 +111,39 @@
     }
 
 }
+
+.animal {
+    width: 100%;
+    display: flex;
+    flex-flow: row wrap;
+    align-content: flex-start;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
+
+    &__container {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: center;
+        justify-content: flex-start;
+        align-content: flex-start;
+
+        font-family: "Roboto";
+        padding: 16px;
+        gap: 16px;
+    }
+
+    &__table {
+        padding: 16px;
+        border: 1px solid white;
+        border-radius: 16px;
+        height: 100%;
+
+        tr {
+            padding: 5px;
+            th, td {
+                padding: 5px;
+            }
+        }
+    }
+}

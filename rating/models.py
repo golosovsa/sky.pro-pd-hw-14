@@ -12,7 +12,7 @@ from grm import do_sqlite_dict_factory, BaseModel
 
 
 class Rating(BaseModel):
-
+    """ Movies by rating model """
     def __init__(self, ratings, limit, offset):
 
         def is_rating(rating):

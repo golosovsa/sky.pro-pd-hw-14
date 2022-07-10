@@ -14,8 +14,8 @@ bp_rating = Blueprint("bp_rating", __name__)
 
 
 @bp_rating.route("/<string:rating>", methods=["GET"])
-def index_single_by_title(rating: str):
-
+def index_movies_by_rating(rating: str):
+    """ Movies by rating route """
     ratings = {
         "children": ["G"],
         "family": ["G", "PG", "PG-13"],

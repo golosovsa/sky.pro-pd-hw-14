@@ -8,7 +8,7 @@ from flask import jsonify
 
 
 class BaseModel:
-
+    """ Base model """
     _data = None
 
     def jsonify(self):

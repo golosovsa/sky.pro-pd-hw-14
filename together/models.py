@@ -9,7 +9,7 @@ from grm import do_sqlite_dict_factory, BaseModel
 
 
 class Together(BaseModel):
-
+    """ Together plays with two actors model """
     def __init__(self, actor1, actor2, times, limit, offset):
 
         filter_actor_1 = f"%{actor1}%"

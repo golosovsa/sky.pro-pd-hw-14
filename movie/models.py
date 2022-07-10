@@ -14,7 +14,7 @@ from grm import do_sqlite_dict_factory, BaseModel
 
 
 class Single(BaseModel):
-
+    """ Single movie most fresh by title model """
     def __init__(self, title):
 
         with AppData() as conn:
@@ -34,7 +34,7 @@ class Single(BaseModel):
 
 
 class Short(BaseModel):
-
+    """ Short data movies by years range """
     def __init__(self, start, end, limit, offset):
 
         with AppData() as conn:

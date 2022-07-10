@@ -10,16 +10,18 @@
 from flask import Flask, render_template
 
 # local imports
-from app_data import AppData
+from app_data import AppData, AppDataHW15
 from movie.views import bp_movie
 from rating.views import bp_rating
 from genre.views import bp_genre
 from together.views import bp_together
 from search.views import bp_search
 from usage.views import bp_usage
+from animals.views import bp_animals
 
 
 def create_app():
+    """ Create app function """
     the_app = Flask(__name__, static_folder="static", template_folder="templates")
 
     # flask settings
@@ -29,6 +31,7 @@ def create_app():
 
     # app data
     AppData().connect("data/netflix.db")
+    AppDataHW15().connect("data/animal.db")
 
     # blueprints
     the_app.register_blueprint(bp_movie, url_prefix="/movie/")
@@ -37,6 +40,7 @@ def create_app():
     the_app.register_blueprint(bp_together, url_prefix="/together/")
     the_app.register_blueprint(bp_search, url_prefix="/search/")
     the_app.register_blueprint(bp_usage, url_prefix="/usage/")
+    the_app.register_blueprint(bp_animals, url_prefix="/animals/")
 
     # static root route
     @the_app.route("/", methods=["GET"])
@@ -46,5 +50,7 @@ def create_app():
     return the_app
 
 
+app = create_app()
+
 if __name__ == '__main__':
-    create_app().run()
+    app.run()

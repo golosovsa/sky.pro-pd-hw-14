@@ -10,7 +10,7 @@ from app_data import AppData
 
 
 class Search(BaseModel):
-
+    """ Search movies by type, year, genre model """
     def __init__(self, movie_type, release_year, genre, limit, offset):
 
         genre = f"%{genre}%"

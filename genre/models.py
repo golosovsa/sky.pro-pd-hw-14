@@ -10,7 +10,7 @@ from grm import do_sqlite_dict_factory, BaseModel
 
 
 class GenreTop(BaseModel):
-
+    """ Top 10 genre model """
     def __init__(self, genre):
         with AppData() as conn:
             conn.row_factory = do_sqlite_dict_factory

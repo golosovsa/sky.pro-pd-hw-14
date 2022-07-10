@@ -13,7 +13,7 @@ bp_usage = Blueprint("bp_usage", __name__)
 
 @bp_usage.route("/hw14")
 def index_usage():
-
+    """ Usage route for hw14 """
     usage_msg = [
 
         {'message': 'Hello from SKY.PRO lesson 14 homework project API )))'},
@@ -50,4 +50,24 @@ def index_usage():
         },
     ]
     
+    return jsonify(usage_msg), 200
+
+
+@bp_usage.route("/hw15")
+def index_usage_hw15():
+    """ Usage route for hw15 """
+    usage_msg = [
+
+        {'message': 'Hello from SKY.PRO lesson 15 homework project API )))'},
+        {'message': 'You can use following api routes:'},
+        {
+            'message': '- this message',
+            'route': '/usage/hw15'
+        },
+        {
+            'message': '- get information about animal by pk',
+            'route': '<int:pk>'
+        },
+    ]
+
     return jsonify(usage_msg), 200
