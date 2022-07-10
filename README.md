@@ -175,4 +175,7 @@ It contains information about pets and events associated with them: who was give
 # Project status
 
 - [x] HW14 done.
-- [ ] HW15 in process
+- [x] HW15 done.
+
+[Animals database schema](https://app.quickdatabasediagrams.com/#/d/Oci2ae)
+[Animal database sql normalization script](https://github.com/golosovsa/sky.pro-pd-hw-14/blob/main/animals_normalize_sql_queries/normalize_animals_db.sql)
